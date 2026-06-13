@@ -1,176 +1,277 @@
-# Resume Screening with AI (TF-IDF + Cosine Similarity + Streamlit UI)
-
 import streamlit as st
 import pandas as pd
 import numpy as np
+import re
+
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
 from PyPDF2 import PdfReader
 import docx2txt
 
-
-# ------------------- Helper Functions ------------------- #
-
-def extract_text_from_pdf(pdf_file):
-    try:
-        reader = PdfReader(pdf_file)
-        text = ""
-
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
-
-        return text.strip()
-
-    except Exception as e:
-        st.error(f"Error reading PDF file: {e}")
-        return ""
-
-
-def extract_text_from_docx(docx_file):
-    try:
-        text = docx2txt.process(docx_file)
-        return text.strip()
-
-    except Exception as e:
-        st.error(f"Error reading DOCX file: {e}")
-        return ""
-
-
-def read_resume(uploaded_file):
-    filename = uploaded_file.name.lower()
-
-    if filename.endswith(".pdf"):
-        return extract_text_from_pdf(uploaded_file)
-
-    elif filename.endswith(".docx"):
-        return extract_text_from_docx(uploaded_file)
-
-    return ""
-
-
-def compute_similarity(resume_texts, job_description):
-    corpus = resume_texts + [job_description]
-
-    vectorizer = TfidfVectorizer(stop_words="english")
-    tfidf_matrix = vectorizer.fit_transform(corpus)
-
-    job_vector = tfidf_matrix[-1]
-    resume_vectors = tfidf_matrix[:-1]
-
-    scores = cosine_similarity(resume_vectors, job_vector)
-
-    return scores.flatten()
-
-
-# ------------------- Streamlit UI ------------------- #
+# ---------------------------
+# Page Config
+# ---------------------------
 
 st.set_page_config(
     page_title="👁️ Vibriss",
     layout="wide"
 )
 
-st.title("👁️ Vibriss - AI-Powered Resume Screener")
+# ---------------------------
+# Skills Database
+# ---------------------------
+
+SKILLS = [
+    "c", "c++", "java", "python", "sql",
+    "html", "css", "javascript",
+    "react", "node", "express",
+    "mongodb", "mysql",
+    "oop",
+    "data structures",
+    "algorithms",
+    "dbms",
+    "operating systems",
+    "computer networks",
+    "git",
+    "machine learning",
+    "deep learning",
+    "pandas",
+    "numpy",
+    "scikit-learn"
+]
+
+# ---------------------------
+# Helper Functions
+# ---------------------------
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z0-9+# ]', ' ', text)
+    return text
+
+
+def extract_text_from_pdf(pdf_file):
+    try:
+        reader = PdfReader(pdf_file)
+
+        text = ""
+
+        for page in reader.pages:
+            page_text = page.extract_text()
+
+            if page_text:
+                text += page_text + "\n"
+
+        return text
+
+    except Exception as e:
+        st.error(f"PDF Error: {e}")
+        return ""
+
+
+def extract_text_from_docx(docx_file):
+    try:
+        return docx2txt.process(docx_file)
+
+    except Exception as e:
+        st.error(f"DOCX Error: {e}")
+        return ""
+
+
+def read_resume(uploaded_file):
+
+    filename = uploaded_file.name.lower()
+
+    if filename.endswith(".pdf"):
+        return extract_text_from_pdf(uploaded_file)
+
+    if filename.endswith(".docx"):
+        return extract_text_from_docx(uploaded_file)
+
+    return ""
+
+
+def extract_skills(text):
+
+    text = text.lower()
+
+    found = []
+
+    for skill in SKILLS:
+        if skill in text:
+            found.append(skill)
+
+    return list(set(found))
+
+
+def skill_match_score(resume_text, jd_text):
+
+    resume_skills = set(extract_skills(resume_text))
+    jd_skills = set(extract_skills(jd_text))
+
+    if len(jd_skills) == 0:
+        return 0
+
+    matched = resume_skills.intersection(jd_skills)
+
+    return len(matched) / len(jd_skills)
+
+
+def compute_similarity(resume_texts, job_description):
+
+    corpus = resume_texts + [job_description]
+
+    vectorizer = TfidfVectorizer(
+        stop_words="english",
+        ngram_range=(1, 2),
+        max_features=5000
+    )
+
+    tfidf_matrix = vectorizer.fit_transform(corpus)
+
+    job_vector = tfidf_matrix[-1]
+
+    resume_vectors = tfidf_matrix[:-1]
+
+    scores = cosine_similarity(
+        resume_vectors,
+        job_vector
+    )
+
+    return scores.flatten()
+
+
+# ---------------------------
+# UI
+# ---------------------------
+
+st.title("👁️ Vibriss - AI Resume Screener")
 
 st.write(
-    "This ATS-enabled model intelligently scores resumes to identify the most suitable candidates."
+    "AI-powered ATS Resume Screening using TF-IDF, Cosine Similarity and Skill Matching."
 )
 
-st.write(
-    "It automatically evaluates resumes against a Job Description using TF-IDF and Cosine Similarity."
-)
-
-# ------------------- Sidebar ------------------- #
+# ---------------------------
+# Sidebar
+# ---------------------------
 
 st.sidebar.header("📄 Job Description")
 
 job_description = st.sidebar.text_area(
-    "Paste Job Description Here"
+    "Paste Job Description Here",
+    height=250
 )
 
-st.sidebar.header("📁 Candidate Resumes")
+st.sidebar.header("📁 Upload Resumes")
 
 resume_files = st.sidebar.file_uploader(
-    "Upload Multiple Resumes (PDF/DOCX)",
+    "PDF / DOCX",
     type=["pdf", "docx"],
     accept_multiple_files=True
 )
 
-# ------------------- Screening ------------------- #
+# ---------------------------
+# Screening
+# ---------------------------
 
-if st.sidebar.button("⚙️ Run Screening"):
+if st.sidebar.button("🚀 Run Screening"):
 
     if not job_description.strip():
-        st.warning("Please provide a Job Description.")
+        st.warning("Enter Job Description")
         st.stop()
 
     if not resume_files:
-        st.warning("Please upload at least one resume.")
+        st.warning("Upload at least one resume")
         st.stop()
 
-    st.info("🔍 Screening resumes... Please wait.")
+    st.info("🔍 Screening resumes...")
 
     resume_texts = []
     candidate_names = []
+    extracted_skills_list = []
 
     for file in resume_files:
 
-        try:
-            file.seek(0)
+        file.seek(0)
 
-            text = read_resume(file)
+        text = read_resume(file)
 
-            if text.strip():
-                resume_texts.append(text)
-                candidate_names.append(file.name)
+        if text.strip():
 
-            else:
-                candidate_names.append(
-                    file.name + " (No Text Extracted)"
-                )
-                resume_texts.append("")
+            cleaned = clean_text(text)
 
-        except Exception as e:
-            st.error(f"Error processing {file.name}: {e}")
+            resume_texts.append(cleaned)
 
-    if not any(text.strip() for text in resume_texts):
-        st.error(
-            "Could not extract text from any uploaded resume."
-        )
-        st.stop()
+            candidate_names.append(file.name)
 
-    try:
-        scores = compute_similarity(
-            resume_texts,
+            extracted_skills_list.append(
+                ", ".join(extract_skills(cleaned))
+            )
+
+        else:
+
+            resume_texts.append("")
+
+            candidate_names.append(
+                file.name + " (No Text Found)"
+            )
+
+            extracted_skills_list.append("")
+
+    job_description = clean_text(job_description)
+
+    tfidf_scores = compute_similarity(
+        resume_texts,
+        job_description
+    )
+
+    final_scores = []
+
+    for i in range(len(resume_texts)):
+
+        skill_score = skill_match_score(
+            resume_texts[i],
             job_description
         )
 
-        results_df = pd.DataFrame({
-            "Candidate Name": candidate_names,
-            "Match Score (%)": np.round(scores * 100, 2)
-        })
-
-        results_df = results_df.sort_values(
-            by="Match Score (%)",
-            ascending=False
-        ).reset_index(drop=True)
-
-        st.success("✅ Screening Complete!")
-
-        st.dataframe(
-            results_df,
-            use_container_width=True
+        final_score = (
+            0.7 * tfidf_scores[i]
+            +
+            0.3 * skill_score
         )
 
-        csv_data = results_df.to_csv(index=False)
+        final_score = min(final_score * 250, 100)
 
-        st.download_button(
-            label="📥 Download Results as CSV",
-            data=csv_data,
-            file_name="resume_scores.csv",
-            mime="text/csv"
-        )
+        final_scores.append(round(final_score, 2))
 
-    except Exception as e:
-        st.error(f"Error during screening: {e}")
+    results_df = pd.DataFrame({
+
+        "Candidate Name": candidate_names,
+
+        "ATS Score (%)": final_scores,
+
+        "Skills Found": extracted_skills_list
+
+    })
+
+    results_df = results_df.sort_values(
+        by="ATS Score (%)",
+        ascending=False
+    )
+
+    st.success("✅ Screening Complete!")
+
+    st.dataframe(
+        results_df,
+        use_container_width=True
+    )
+
+    csv = results_df.to_csv(index=False)
+
+    st.download_button(
+        "📥 Download Results CSV",
+        csv,
+        "resume_scores.csv",
+        "text/csv"
+    )
