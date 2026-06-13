@@ -5,7 +5,6 @@ Vibriss is an intelligent Applicant Tracking System (ATS) inspired resume screen
 The system leverages TF-IDF Vectorization and Cosine Similarity to identify the most relevant candidates, helping recruiters significantly reduce manual screening effort and accelerate hiring decisions.
 
 ## 🚀 Live Demo
-## 🚀 Live Demo
 
 [Try Vibriss Resume Screener](https://smartresumescreener-o3eihhtebktmaxf9r22yjf.streamlit.app/)
 
