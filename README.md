@@ -1,26 +1,108 @@
-🧠 AI-Powered Resume Screener
-This is a highly intelligent resume screening tool that uses TF-IDF (Term Frequency-Inverse Document Frequency) and Cosine Similarity to automatically match and rank candidate resumes against a given job description. The solution includes a user-friendly Streamlit web interface, making it easy for recruiters and HR professionals to assess resume-job fit without manual scanning.
+# 🧠 Vibriss – AI-Powered Resume Screener
 
-This intelligently developed AI-powered resume screening model which I built for seamless recruitment of talents and exceptionally seasoned individuals can be accessed live on streamlit
+Vibriss is an intelligent Applicant Tracking System (ATS) inspired resume screening platform that automatically evaluates and ranks candidate resumes against a job description using Natural Language Processing (NLP) techniques.
 
-🔧 How It Works
-1. Resume Text Extraction
-Resumes are parsed using:
+The system leverages TF-IDF Vectorization and Cosine Similarity to identify the most relevant candidates, helping recruiters significantly reduce manual screening effort and accelerate hiring decisions.
 
-PyPDF2 for PDFs
-docx2txt for DOCX files
-2. Job Description Input
-The job description is pasted into a sidebar text box.
+## 🚀 Live Demo
+## 🚀 Live Demo
 
-3. TF-IDF Vectorization
-All resume texts and the job description are converted into TF-IDF vectors using TfidfVectorizer from scikit-learn.
+[Try Vibriss Resume Screener](https://smartresumescreener-o3eihhtebktmaxf9r22yjf.streamlit.app/)
 
-4. Cosine Similarity Calculation
-The similarity score between each resume and the job description is computed using cosine similarity.
+## ✨ Features
 
-5. Ranking and Display
-Candidates are ranked by score and displayed in descending order. Scores are downloadable as a CSV.
+* Upload multiple resumes in PDF and DOCX formats
+* Automatic resume text extraction
+* Job description based candidate screening
+* TF-IDF based feature representation
+* Cosine Similarity based resume ranking
+* ATS-style candidate scoring
+* Interactive Streamlit web interface
+* Download screening results as CSV
+* Supports bulk resume evaluation
 
-📌 Example Use Case
-Imagine you're hiring a Data Analyst. You paste the job description, upload 10 resumes, and instantly see which candidates best match your job post — saving hours of manual review.
+## 🏗️ System Architecture
 
+### 1. Resume Parsing
+
+Candidate resumes are processed using:
+
+* PyPDF2 for PDF extraction
+* docx2txt for DOCX extraction
+
+### 2. Job Description Input
+
+Recruiters provide a job description through the Streamlit interface.
+
+### 3. Text Vectorization
+
+TF-IDF (Term Frequency–Inverse Document Frequency) transforms resumes and job descriptions into numerical feature vectors.
+
+### 4. Similarity Analysis
+
+Cosine Similarity measures semantic relevance between each resume and the target job description.
+
+### 5. Candidate Ranking
+
+Resumes are ranked according to their similarity scores and displayed in descending order.
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+* Streamlit
+
+### Backend
+
+* Python
+
+### Machine Learning / NLP
+
+* Scikit-learn
+* TF-IDF Vectorizer
+* Cosine Similarity
+
+### Data Processing
+
+* Pandas
+* NumPy
+
+### Document Parsing
+
+* PyPDF2
+* docx2txt
+
+## 📊 Example Workflow
+
+1. Paste a Job Description.
+2. Upload one or more resumes.
+3. Run Screening.
+4. View ATS Match Scores.
+5. Download results as CSV.
+
+## 📈 Future Enhancements
+
+* Skill extraction and skill-gap analysis
+* Semantic matching using Sentence Transformers
+* Resume keyword highlighting
+* Candidate recommendation engine
+* Interactive analytics dashboard
+* LLM-powered resume insights
+
+## 🎯 Use Cases
+
+* Campus Recruitment
+* Internship Hiring
+* Talent Acquisition
+* Resume Shortlisting
+* HR Automation
+* Recruitment Analytics
+
+## 👨‍💻 Developer
+
+Sai Sravya Nagavarapu
+
+* GitHub: https://github.com/sainagavarapu13
+* LinkedIn: Add your LinkedIn URL here
+
+If you found this project useful, consider giving it a ⭐ on GitHub.
